@@ -27,4 +27,4 @@ def fibonacci(N):
     x,y,z = cos(theta)*sin(phi), sin(theta)*sin(phi), cos(phi)
     matrika = np.stack((x,y,z),axis=-1)
 
-    return matrika
+    return np.array(matrika)

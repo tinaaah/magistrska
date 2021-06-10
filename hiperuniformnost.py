@@ -1,65 +1,103 @@
 import numpy as np
+from numpy import linalg as LA
 from scipy.special import eval_legendre
 import math
 import random
 from porazdelitve import nakljucna,fibonacci
+from threading import Thread
+from time import sleep, perf_counter
 
-polinom = eval_legendre
+legendre = eval_legendre
 cos, acos = math.cos, math.acos
 pi = math.pi
 
+### Strukturni faktor kot vsota legendrovih polinomov
 def S(data,l):
     N = len(data)
     vsota = 0
 
     for k in data:
         for t in data:
-            produkt = np.dot(k,t)
-            vsota += polinom(l,produkt)
+            produkt = np.dot(k,t)/(LA.norm(k)*LA.norm(t))
+            vsota += legendre(l,produkt)
     return vsota/N
 
-def varianca(data):
+### Varianca kot vsota razlik legendrovih polinomov
+def varianca(data,kot):
     vsota = 0
     N = len(data)
 
     for l in range(1,101):
-        produkt = polinom(l+1,cos(theta)) - polinom(l-1,cos(theta))
+        produkt = legendre(l+1,cos(kot)) - legendre(l-1,cos(kot))
         nov = S(data,l)*produkt**2/(2*l+1)
         vsota += nov
         #print(nov)
-    return vsota*N/4
+    print(kot/pi, vsota*N/4)
+    return
 
+### Steje ko je razdalja po krogu manjsa od kota kapice
 def stevilo(n,kot,porazdelitev):
-    m = 0
+    m = np.zeros(n)
     for i in range(n):
         so_not = 0
         sredisce = nakljucna(1)[0]
+        t = 0
         for vektor in porazdelitev:
-            if acos(np.dot(sredisce,vektor)) <= kot: 
+            t += 1
+            produkt = np.dot(sredisce,vektor)
+            if produkt <= cos(kot) and produkt >= 0:
                 so_not += 1
-        m += so_not/n
+        m[i] += so_not
     return m
-    
-datoteka = "85.xyz"
+
+### Porazdelitev — random/fibonacci/Thomson ---> lahko bi se kej
+
+#datoteka = "fibonacci/932.txt"
+#data = np.loadtxt(datoteka, usecols=[0,1,2]) 
+
+datoteka = "thomson/10.xyz"
 data = np.loadtxt(datoteka, skiprows=2, usecols=[1,2,3]) 
-#data = nakljucna(85)
-theta = pi/20
 
+#data = nakljucna(20)
 
-#### Izpisen sfericni faktor za razlicne l-je
+### Interval dolg pi/2 na a delov v th
+a = 32
+th = np.linspace(0, pi/2, a)
+
+### Izpise sfericni faktor za razlicne l-je
 if 0:
-    for i in range(1,101):
-        print(i,S(data,i),sep='\t')
+    stopnja = np.linspace(1,100,100)
+    for l in stopnja:
+        print(l,S(data,l),sep='\t')
 
-### Izracunam varianco z metropolisom
+start_time = perf_counter()
+### Izracuna varianco preko Legendrovih polinomov 
 if 1:
-    n = 1000
-    m = stevilo(n,theta,data)
-    varianca = math.sqrt(m*(n-m))/n
-    print(m,n)
-    print(varianca)
+    th = th.reshape(1,32)
+    vse_niti = []
+    for i in range(len(th[0])):
+        for n in range(1):
+            nit = (Thread(target=varianca, args=(data,th[n][i])))
+            nit.start()
+            vse_niti.append(nit)
+        for nit in vse_niti:
+            nit.join()
+    end_time = perf_counter()
+    print(f'Vzame {end_time- start_time: 0.2f} sekund.')
 
-### Izracunam varianco z uporabo strukturnega faktorja 
-if 0:   # izracun variance.2
-    print(varianca(data))
 
+if 0:
+    for theta in th:
+        napaka = varianca(data, theta)
+    end_time = perf_counter()
+    print(f'Vzame {end_time- start_time: 0.2f} sekund.')
+
+
+### Izracuna variance za veliko stevilo n
+if 0:
+    th = np.linspace(0,pi/2,101)
+    for theta in th:
+        n = 10000
+        m = stevilo(n,theta,data)
+        varianca = np.sum(np.square(m))/n - (np.sum(m)/n)**2
+        print(theta/pi,varianca,sep='\t')
