@@ -39,15 +39,13 @@ def varianca(data,kot):
 def stevilo(n,kot,porazdelitev):
     m = np.zeros(n)
     for i in range(n):
-        so_not = 0
         sredisce = nakljucna(1)[0]
         t = 0
         for vektor in porazdelitev:
             t += 1
             produkt = np.dot(sredisce,vektor)
-            if produkt <= cos(kot) and produkt >= 0:
-                so_not += 1
-        m[i] += so_not
+            if produkt <= cos(kot): #and produkt >= 0:
+                m[i] += 1
     return m
 
 ### Porazdelitev — random/fibonacci/Thomson ---> lahko bi se kej
@@ -55,8 +53,8 @@ def stevilo(n,kot,porazdelitev):
 #datoteka = "fibonacci/932.txt"
 #data = np.loadtxt(datoteka, usecols=[0,1,2]) 
 
-datoteka = "thomson/10.xyz"
-data = np.loadtxt(datoteka, skiprows=2, usecols=[1,2,3]) 
+datoteka = "thomson/85.xyz"
+data = np.loadtxt(datoteka, skiprows=2, usecols=[0,1,2]) 
 
 #data = nakljucna(20)
 
@@ -72,7 +70,7 @@ if 0:
 
 start_time = perf_counter()
 ### Izracuna varianco preko Legendrovih polinomov 
-if 1:
+if 0:
     th = th.reshape(1,32)
     vse_niti = []
     for i in range(len(th[0])):
@@ -100,4 +98,5 @@ if 0:
         n = 10000
         m = stevilo(n,theta,data)
         varianca = np.sum(np.square(m))/n - (np.sum(m)/n)**2
-        print(theta/pi,varianca,sep='\t')
+        print(np.sum(np.square(m)),np.sum(m),sep='\t')
+        #print(theta/pi,varianca,sep='\t')

@@ -8,10 +8,10 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf_trig.h>
 
-#define ST_PONOVITEV 10
-#define ST_DELCEV 85 
+#define ST_PONOVITEV 100
+#define ST_DELCEV 85
 
-#define fromfile 1
+#define fromfile 0
 
 
 // printanje vektorja
@@ -84,7 +84,7 @@ double varianca_legendre(gsl_vector **data, double kot, int N){
 
 // stevilska varianca preko povprecenja, n je stevilo ponovitev, N je stevilo tock
 void varianca_stetje(gsl_vector **data, double *m, int n, int N, double kot){
-    double produkt, vsota;
+    double produkt;
     gsl_vector *sredisce;
     for(int i=0; i<n; i++){
 	randdist(&sredisce, 1);
@@ -106,32 +106,33 @@ int main(){
 
     // Ce imam podatke odkomentiram to:
 #if fromfile==1
-    //FILE *file = fopen("fibonacci/85.txt", "r");
-    FILE *file = fopen("thomson/85.xyz", "r");
+
+    FILE *file = fopen("fibonacci/85.txt", "r");
+    //FILE *file = fopen("thomson/85.xyz", "r");
     int N;
     fscanf(file, "%d", &N);					    // ST_DELCEV = N !!!!!!
 
-
     loaddata(podatki, file, N);
 
-    /*
     // Izracuna strukturni faktor za vrednosti l=(1,100)
+
+    /*
     for(int i=1; i<=100; i++){
 	double s = structure_factor(podatki, N, i);
 	printf("%d\t%e\n", i, s);
     }
 	*/
 
-    /*
+
     // Izracuna varianco preko legendrovih polinomov za theta od 0 do pi/2
     double theta, napaka;
     for(int i=0; i<=100; i++){
 	theta = i*M_PI/2/100;
-	napaka = varianca_legendre(podatki, theta, N);
-	printf("%lf\t%e\n", theta/M_PI, napaka);
+	napaka = varianca_legendre(podatki, theta, ST_DELCEV);
+	printf("%e\t%e\n", theta/M_PI, napaka);
     }
-	*/
 
+    /*
     // Izracuna varianco s povprecenjem n ponovitev za theta od 0 do pi/2 
     int n = 10000;
     double napaka;
@@ -140,7 +141,7 @@ int main(){
 	double *so_znotraj = calloc(n,sizeof(double));
 	x = 0;
 	x2 = 0;
-	varianca_stetje(podatki, so_znotraj, n, 85, i*M_PI/100/2);
+	varianca_stetje(podatki, so_znotraj, n, 85, i*M_PI/100/2); // ST_DELCEV = N !!!!
 	for(int j=0; j<n; j++){
 	    x += (int)pow(so_znotraj[j],2);
 	    x2 += (int)so_znotraj[j];
@@ -149,11 +150,14 @@ int main(){
 	napaka = ((double)x)/n - pow(((double)x2)/n, 2);
 	printf("%e\t%e\n", ((double)i)/100/2, napaka);
     }
-
+	*/
 #endif
    
     // Ce imam random odkomentiram to in povprecim
 #if fromfile==0
+
+    // Izracuna strukturni faktor za vrednosti l=(1,100)
+    /*
     double *stopnja = calloc(100,sizeof(double));
     for(int j=0; j<ST_PONOVITEV; j++){
 	randdist(podatki, ST_DELCEV);
@@ -165,6 +169,46 @@ int main(){
     for(int l=1; l<=100; l++){
 	printf("%d\t%e\n", l, stopnja[l-1]/ST_PONOVITEV);
     }
+
+
+    // Izracuna varianco preko legendrovih polinomov za theta od 0 do pi/2
+    double *napaka = calloc(100,sizeof(double));
+    double theta;
+    for(int j=0; j<ST_PONOVITEV; j++){
+	randdist(podatki, ST_DELCEV);
+	for(int i=0; i<=100; i++){
+	    theta = i*M_PI/2/100;
+	    napaka[i] += varianca_legendre(podatki, theta, ST_DELCEV);
+	}
+    }
+    for(int i=0; i<=100; i++){
+	printf("%e\t%e\n", (double)i/100/2, napaka[i]/ST_PONOVITEV);
+    }
+
+	*/
+    // Izracuna varianco s povprecenjem n ponovitev za theta od 0 do pi/2 
+
+    double *napaka = calloc(100,sizeof(double));
+    int x,x2;
+    int n = 10000;
+    for(int j=0; j<ST_PONOVITEV; j++){
+	randdist(podatki, ST_DELCEV);
+	for(int i=0; i<=100; i++){
+	    double *so_znotraj = calloc(n,sizeof(double));
+	    x = 0;
+	    x2 = 0;
+	    varianca_stetje(podatki, so_znotraj, n, ST_DELCEV, i*M_PI/100/2); // ST_DELCEV = N !!!!
+	    for(int j=0; j<n; j++){
+		x += (int)pow(so_znotraj[j],2);
+		x2 += (int)so_znotraj[j];
+	    }
+	    napaka[i] += ((double)x)/n - pow(((double)x2)/n, 2);
+	}
+    }
+    for(int i=0; i<=100; i++){
+	printf("%e\t%e\n", ((double)i)/100/2, napaka[i]/ST_PONOVITEV);
+    }
+
 #endif
 
 }

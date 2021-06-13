@@ -28,3 +28,10 @@ def fibonacci(N):
     matrika = np.stack((x,y,z),axis=-1)
 
     return np.array(matrika)
+
+if __name__ == "__main__":
+    N = 85
+    porazdelitev = fibonacci(N)
+    print(N,"\n")
+    for i in range(N):
+        print(porazdelitev[i,0], porazdelitev[i,1], porazdelitev[i,2], sep='\t')
