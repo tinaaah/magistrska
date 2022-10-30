@@ -71,7 +71,7 @@ $ B=\sum_{i=1,2,3} b_i^{2} \hat{\vec{v}}_i \otimes\hat{\vec{v}}_i$, kjer so
 $\hat{\vec{u}}_i$ ortonormirani vektorji vzdolž treh polosi elipsoide A 
 z dolžinami $a_i$, $\hat{\vec{v}}_i$ pa ortonormirani vektorji vzdolž polosi 
 elipsoide B z dolžinami $b_i$. \
-Definiramo afino funkcijo $F(\vec{r}, \lambda)$. ki je kombinacija kvadratičnih
+Definiramo funkcijo $F(\vec{r}, \lambda)$. ki je kombinacija kvadratičnih
 form $E_1(\vec{r})$ ter $E_2(\vec{r})$: \
 $F(\vec{r}, \lambda) = \lambda E_a(\vec{r}) + (1-\lambda) E_b(\vec{r})$
 
@@ -84,4 +84,4 @@ $\nabla F(\vec{r}, \lambda) = 0$, ali eksplicitno:\
 $\lambda A^{-1} (\vec{r} - \vec{r}_a) + (1-\lambda) B^{-1} (\vec{r} - \vec{r}_b) = 0 $.
 
 Rešitev $\vec{r}(\lambda)$ izrazimo z matriko $C(\lambda)=[\lambda B + (1-\lambda)A]^{-1}$
-(inverz obstaja saj sta matriki A ter B pozitivno definitni)
+(inverz obstaja saj sta matriki A ter B pozitivno definitni).
