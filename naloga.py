@@ -50,14 +50,10 @@ class distribution():
         dx = point1[0] - point2[0]
         dy = point1[1] - point2[1]
 
-        if dx > 0.5*width:
-            dx = dx - width
-        elif dx < -0.5*width:
-            dx = dx + width  
-        if dy > 0.5*height:
-            dy = dy - height
-        elif dy < -0.5*height:
-            dy = dy + height
+        if dx > 0.5*width:      dx = dx - width
+        elif dx < -0.5*width:   dx = dx + width  
+        if dy > 0.5*height:     dy = dy - height
+        elif dy < -0.5*height:  dy = dy + height
         return np.array([dx, dy])
 
     def periodic_metric(self, point1, point2, vector=False):

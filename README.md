@@ -59,7 +59,15 @@ Končna porazdelitev za 1024 točk:
 
 ___
 
-## 2. Eliptična kontaktna funkcija
+## 2. Porazdelitev elips in PBC
+Periodični robni pogoji:
+``` python
+dx = point1 - point2
+if dx > 0.5*width:    dx = dx - width
+if dx < -0.5*width:   dx = dx + width
+```
+
+## 3. Eliptična kontaktna funkcija
 Imamo dve elipsi: \
 $E_a = (\vec{r} - \vec{r}_1) \cdot A^{-1} \cdot (\vec{r} - \vec{r}_1)$
 in \
@@ -85,3 +93,5 @@ $\lambda A^{-1} (\vec{r} - \vec{r}_a) + (1-\lambda) B^{-1} (\vec{r} - \vec{r}_b)
 
 Rešitev $\vec{r}(\lambda)$ izrazimo z matriko $C(\lambda)=[\lambda B + (1-\lambda)A]^{-1}$
 (inverz obstaja saj sta matriki A ter B pozitivno definitni).
+
+## 4. Večanje elips in rotacija
