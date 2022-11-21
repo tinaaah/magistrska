@@ -2,7 +2,7 @@ import math
 import random
 import numpy as np
 from matplotlib import patches
-from scipy.spatial import distance
+from scipy.spatial.distance import cdist 
 
 cos = math.cos
 sin = math.sin
@@ -23,18 +23,18 @@ class distribution():
         self.width, self.height = grid
         self.N = N
 
-        ## generira porazdelitev
+        ## generate distribution
         while len(samples) < self.N:
             k = len(samples)//2 + 1
 
-            ## randomly generate k candidates 
+            ## randomly generate k candidates
             candidates = np.array( [
                                     [random.uniform(0,1)*self.width, 
                                     random.uniform(0,1)*self.height] for i in range(k)
                                     ])
 
             ## calculate distance matrix between candidates and existing points
-            distances = distance.cdist(candidates, samples, self.periodic_metric)
+            distances = cdist(candidates, samples, self.periodic_metric)
 
             ## select the candidate with the largest minimum distance
             r_min = np.min(distances, axis=1)
@@ -45,7 +45,7 @@ class distribution():
 
         self.samples = samples
     
-    ### define pbc metric
+    ## define pbc metric
     def check_period(point1, point2, width, height):
         dx = point1[0] - point2[0]
         dy = point1[1] - point2[1]
@@ -67,6 +67,7 @@ class ellipse():
         self.center = center
         self.angle = angle
 
+    ## see matplotlib.patches.Ellipse
     def convert_to_patches(self, a, b):
         return patches.Ellipse(self.center, a, b, angle=self.angle*180/math.pi)
 
@@ -77,12 +78,13 @@ class ellipses():
         self.N = distribution.N
         self.a, self.b = a, b
 
-        ## v centrih naredim elipse
+        ## create ellipses from centres
         self.ell = np.apply_along_axis(
             lambda center: ellipse(center, random.uniform(0,1)*pi*2), 
             1, distribution.samples   )
     
-    ##  sprejme ellipse: center, širino(a), višino(b) in kot
+    
+    ## input is an ellipse: centre, width(a), height(b) and angle
     ## f = lambda*(1-lambda)*r^T * A^(-1) * r
     def f(self, x, E1, E2):
         A1 = np.diag( [self.a**2, self.b**2] )
@@ -97,6 +99,7 @@ class ellipses():
         C = np.linalg.inv( (1-x)*A1 + x*A2 )
         return (x*(1-x)*dr@C@dr.T)[0,0]
     
+    ## mu is maximum value of f
     def mu(self, E1, E2):
         x = np.linspace(0, 1, endpoint=True, num=100)
         y = np.vectorize(self.f)
