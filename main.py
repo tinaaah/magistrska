@@ -111,12 +111,17 @@ class ellipses():
         new_E = 0
         if len(proximity) != 0:
             all_mu = np.array( [self.mu(j_ellipse, point_b) for point_b in proximity])
-            new_E = np.sum(-np.log(all_mu))
+
+            ## energy log of all interactions
+            #new_E = np.sum(-np.log(all_mu))
+            
+            ## energy zero unless in contact
+            new_E += np.sum(-np.log(all_mu[np.where(all_mu<1)]))
         return new_E
             
     def metropolis(self, proximity, n=100, T=0):
         count, E = 0, np.zeros( shape=(n, self.N) )
-        accepted_theta, rejected_theta = np.nan*np.empty(n), np.nan*np.empty(n)
+        accepted_theta, rejected_theta = np.nan*np.ones(n), np.nan*np.ones(n)
 
         ## energy of the starting system    
         E[0] = [self.energy(self.ell[i], self.ell[proximity[i]]) for i in range(self.N)]
@@ -128,24 +133,34 @@ class ellipses():
             j_ellipse = copy.deepcopy(self.ell[j])
 
             ## generate random angle theta
-            j_ellipse.angle = np.random.vonmises(j_ellipse.angle, kappa=1)
-            
+            j_ellipse.angle = np.random.vonmises(j_ellipse.angle, kappa=3)
+
+            ## because delta_theta can get to 2*pi
+            def transform(x):
+                if x > math.pi:     x = x - 2*math.pi
+                elif x < -math.pi:  x = x + 2*math.pi
+                return x
+            delta_theta = transform(self.ell[j].angle - j_ellipse.angle)
+           
             ## decide if you want to accept new step or not
             new_E = self.energy(j_ellipse, self.ell[proximity[j]])
             delta_E = new_E - E[t,j]
 
             ## boltzmann probability distribution
             u = random.uniform(0,1)
-            if (delta_E<0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1)/u):
+
+            if (delta_E<=0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1)/u):
                 ##accept this step
                 self.ell[j].angle = j_ellipse.angle
+
+                ## save parametres for later
                 ## change energy
                 E[t,j] = new_E
-                ## save parametres for later
-                accepted_theta[count] = j_ellipse.angle
+                ## delta_theta
+                accepted_theta[count] = delta_theta
                 count += 1
             else:
                 ##save parametres for later
-                rejected_theta[t-count] = j_ellipse.angle
+                rejected_theta[t-count] = delta_theta
                 continue
         return [E, accepted_theta, rejected_theta]
