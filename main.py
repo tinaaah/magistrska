@@ -150,17 +150,21 @@ class ellipses():
             u = random.uniform(0,1)
 
             if (delta_E<=0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1)/u):
-                ##accept this step
+                ## accept this step
                 self.ell[j].angle = j_ellipse.angle
 
-                ## save parametres for later
+                ## save parameters for later
                 ## change energy
                 E[t,j] = new_E
                 ## delta_theta
                 accepted_theta[count] = delta_theta
                 count += 1
             else:
-                ##save parametres for later
+                ## save parameters for later
                 rejected_theta[t-count] = delta_theta
                 continue
+
+            ## If energy reaches zero stop iterating
+            if sum(E[t]) == 0:
+                break
         return [E, accepted_theta, rejected_theta]
