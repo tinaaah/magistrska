@@ -1,0 +1,209 @@
+\begin{filecontents*}[overwrite]{\jobname.xmpdata}
+\Title{Naslov magistrskega dela} 
+\Author{Tina Klobas}
+\Keywords{ključna beseda 1\sep ključna beseda 2\sep ključna beseda 3}
+\Subject{Fizika}
+\end{filecontents*}
+
+%-------------------------------------------------------------------------------------------------
+
+\documentclass[longbibliography,slovene,a4paper,12pt]{book}
+
+%-----------------------------------------------------------------------------------
+%     PDF/A
+%----------------------------------------------------------------------------------
+
+\usepackage{xmpincl}
+\usepackage[a-1b, mathxmp]{pdfx}[2018/12/22]
+
+%-------------------------------------------------------------------------------------
+
+\usepackage[slovene]{babel}    
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts, amsmath}                      %% amsmath for \text{} to work
+\usepackage{listings}                               %% for pseudocode
+\usepackage[T1]{fontenc}
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor,colortbl}
+\usepackage{fancyhdr}
+\usepackage[explicit,compact]{titlesec}
+\titleformat{\chapter}[block]
+{\bfseries\huge}{\filright\huge\thechapter.}{1ex}{\huge\filright #1}
+\usepackage[sort,numbers]{natbib}
+\usepackage[nottoc,numbib]{tocbibind}
+\usepackage{acro}
+\usepackage{filecontents}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[a4paper,inner=3.5cm,outer=2.5cm,top=2.5cm,bottom=2.5cm,pdftex]{geometry}
+\usepackage[titletoc, title]{appendix}
+\usepackage[outdir=./gnuplot/]{epstopdf}               %% set directory of tex files
+\usepackage{makeidx}
+\setlength{\headheight}{15pt}
+\usepackage{enumitem}
+\usepackage{emptypage}
+\usepackage{tocloft}
+\renewcommand{\cftpartleader}{\cftdotfill{\cftdotsep}} 
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} 
+\usepackage{caption}
+
+\def\epsfg#1#2{\epsfig{file=#1.eps,width=#2}}
+\def\legendamp#1#2{\vbox{\hsize=#1\caption{\small #2}}}
+
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{5}
+\renewcommand{\topfraction}{0.99}
+\renewcommand{\bottomfraction}{0.99}
+\renewcommand{\textfraction}{0.0}
+\setlength{\tabcolsep}{10pt}
+\renewcommand{\arraystretch}{1.5}
+
+\def\bi#1{\hbox{\boldmath{$#1$}}}
+\let\oldvec\vec
+\def\vec#1{\mbox{\boldmath$#1$}}
+\def\pol{{\textstyle{1\over2}}}
+\def\svec#1{\mbox{{\scriptsize \boldmath$#1$}}}
+
+\makeindex
+%-----------------------------------------------------------------------------------
+%    SUMNIKI
+%-----------------------------------------------------------------------------------
+%  Za pisanje sumnikov imamo tri moznosti:
+%   --- vnasamo jih neposredno v kodnem sistemu UTF-8 (priporocljivo)
+%   --- pisemo jih z latexovim ukazom, ki je namenjen natanko temu,
+%       in sicer kot \v{c}, \v{s}, \v{z}, \v{C}, \v{S}, v{\Z} ali
+%       malo manj pregledno kot \v c, \v s, \v z, \v C, \v S, \v Z,
+%   --- pisemo jih kot "c, "s, "z, "C, "S, "Z, vendar tedaj potrebujemo
+%       spodaj zapisani macro, ki znaku " pripise vlogo `izdelave' sumnika:
+\catcode`\"=\active\def"#1{\v{#1}}
+%       torej \v{S}krjan\v{c}ek == \v Skrjan\v cek == "Skrjan"cek
+%  Pozor: narekovaj potem ne smemo vec pisati kot " ampak kot `` in ''
+%       torej: "Skrjan"cek je "civkal ``"ci-"ci-"ci''.
+
+\newcommand{\e}{\mathrm{e}}
+
+%-----------------------------------------------------------------------------------
+%   PRIPOROCILO
+%
+%  V primeru, da je besedilna datoteka prevelika za pregledno urejanje,
+%  priporocamo, da vsebino razdelite na posamezna poglavja, ki jih v glavni
+%  dokument vkljucite z ukazom \input{naslov_poglavja}.
+%
+%-----------------------------------------------------------------------------------
+
+%% dodam svoje barve, da bojo povsod enake
+\definecolor{myblue}{HTML}{043565}
+\definecolor{mymagenta}{HTML}{8f2d56}
+\definecolor{myteal}{HTML}{218380}
+\definecolor{myyellow}{HTML}{fb9f89}
+\definecolor{mytangerine}{HTML}{ffc43d}
+
+\begin{document}
+
+%-----------------------------------------------------------------------------------
+%       NASLOVNA STRAN 
+%-----------------------------------------------------------------------------------
+
+\pagestyle{empty}
+\begin{center}
+
+{\large UNIVERZA V LJUBLJANI\\
+ FAKULTETA ZA MATEMATIKO IN FIZIKO\\
+ODDELEK ZA FIZIKO\\
+FIZIKA II.~STOPNJA, FIZIKA KONDENZIRANE SNOVI\\}
+
+
+\vspace{4cm}
+{\Large Tina Klobas\\}
+\vspace{10mm}
+{\bf \Large ORIENTACIJSKO ZAGOZDENJE DVODIMENZIOALNIH ELIPS V RAVNINI}\\
+\vspace{5mm}
+{\large Magistrsko delo}\\
+
+\vfill
+
+{\large MENTOR: dr. Anže Božič\\
+SOMENTOR: doc. dr. Simon Čopar\\
+
+\vspace{2cm}
+Ljubljana, 2023}
+
+\end{center}
+
+%-----------------------------------------------------------------------------------
+%        ZAHVALA (NEOBVEZNO)
+%-----------------------------------------------------------------------------------
+
+% \cleardoublepage
+% \mbox{}
+% \vfill
+% {\Large \bf Zahvale}
+% \vspace{1cm}\\
+% Na tem mestu zapi"site, komu se zahvaljujete za pomo"c pri nastanku magistrskega 
+% dela.
+
+%-----------------------------------------------------------------------------------
+%         IZVLECEK
+%-----------------------------------------------------------------------------------
+
+% \input{izvlecek}
+
+%-----------------------------------------------------------------------------------
+%    KAZALO
+%-----------------------------------------------------------------------------------
+
+% \cleardoublepage
+% \tableofcontents
+
+%-----------------------------------------------------------------------------------
+%       OSREDNJI DEL
+%-----------------------------------------------------------------------------------
+
+\cleardoublepage
+\pagestyle{headings}
+\fancyhead[CE,RE]{}
+\fancyhead[LO,CO]{}
+\fancyhead[LE]{\textbf{\nouppercase{\leftmark}}}
+\fancyhead[RO]{\textbf{\nouppercase{\rightmark}}}
+
+
+%\input{uvod}
+\include{metodologija}
+%\input{zakljucek}
+
+%------------------------------------------------------------------------
+%       LITERATURA
+%------------------------------------------------------------------------
+
+\cleardoublepage
+\renewcommand\bibname{Literatura}
+\bibliographystyle{apsrev4-2-fmf-slo}
+\bibliography{Bibliografija-slo}
+
+
+%-----------------------------------------------------------------------
+%       DODATKI
+%-----------------------------------------------------------------------
+
+\cleardoublepage\phantomsection
+\titleformat{\chapter}[display]
+{\bfseries\huge}{\chaptertitlename\ \thechapter}{1ex}{\huge\filright #1}
+
+
+% \begin{appendices}   
+
+%\input{Naslov prvega dodatka}
+%\input{Naslov drugega dodatk}
+
+% \end{appendices}
+
+
+%-----------------------------------------------------------------------
+%       KAZALO (NEOBVEZNO)
+%-----------------------------------------------------------------------
+
+% \cleardoublepage
+% \printindex
+
+\end{document}

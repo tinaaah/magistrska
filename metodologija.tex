@@ -1,0 +1,135 @@
+\lstset{language=Python}
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{myteal},
+  commentstyle=\color{myblue},
+  stringstyle=\color{myyellow},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\chapter{Metodologija}
+\label{chMe}
+
+Okviren potek zagozdenja sistema:
+\begin{enumerate}
+\item{Generiranje dvdimenzionalne mreže $N$ točk z~Mitchellovim algoritmom~\cite{mitch}}.
+\item{Postavitev $N$ elips z~ekscentričnostjo $e$ in naključnimi začetnimi orientacijami.}
+\item{Implementacija prekrivalne funkcije~\cite{perram1985} za zaznavanje trkov med elipsami.}
+\item{Postopno večanje elips in relaksacija vrtenja (Monte Carlo).}
+\item{Analiza konfiguracij.}
+\end{enumerate}
+Dvodimenzionalnemu prostoru dodamo še periodične robne pogoje, ki jih vključimo na naslednji 
+način:
+\begin{lstlisting}[frame=single]  
+    dx = point2 - point1
+    if dx > 0.5*width:
+        dx = dx - width
+    elif dx < -0.5*width:
+        dx = dx + width
+\end{lstlisting}
+
+\section{Mitchellov algoritem}
+
+\begin{figure}[h!]
+    \centering
+    \input{./gnuplot/porazdelitev_1024.tex}
+    \caption[Blue noise]{Porazdelitev $1024$ točk.}
+    \label{slika1}
+\end{figure}
+
+Okviren potek algoritma:
+\begin{enumerate}
+    \item{za začetni točki zgeneriramo naključni poziciji,}
+    \item{zgeneriramo naključne pozicije kandidatov za naslednjo točko,}
+    \item{izberemo tistega kandidata, ki je najdlje od vseh točk porazdelitve 
+    (ima največjo minimalno oddaljenost),}
+    \item{ponovimo korak 2 dokler ne dobimo željeno število točk.}
+\end{enumerate}
+Med algoritmom število kandidatov povečujemo sorazmerno s~številom že obstoječih
+točk $N$. Pri nalogi smo tako na vsakem koraku generirali 
+$ \left \lfloor{N/2}\right \rfloor + 1$ kandidatov.\\
+%% napisi se nek del kako je to kul in primerjavo z modrim sumom blabla
+
+\section{Eliptična kontaktna funkcija}
+
+Kontaktna funkcija je dober kriterij za prekrivanje med dvema elipsama.\footnote{V~nalogi
+uporabljamo dvodimenzionalni ekvivalent tridimenzionalne funkcije povzete 
+po~\cite{perram1985}.}
+
+\subsection{Ena elipsa}
+Elipso $A$ definiramo s~funkcijo $E_a$, ki zadošča naslednjemu pogoju
+\begin{equation}
+    E_a (\vec{r}-\vec{r}_a, \theta_a) 
+    \begin{cases}
+        \quad <1 & \text{znotraj A}\\
+        \quad =1 & \text{na površini A}\\
+        \quad >1 & \text{zunaj A}
+      \end{cases}. 
+    \label{eq:cases}
+\end{equation}
+Izberemo
+
+\begin{equation}
+    E_a = (\vec{r} - \vec{r}_a)^{\top} \mathbf{A}^{-1} (\vec{r} - \vec{r}_a),
+\label{eq:elipsa}
+\end{equation}
+kjer je $\vec{r}_a$ center elipse. Matriko $\mathbf{A}$ lahko zapišemo kot
+\begin{equation}
+    \mathbf{A} (\theta_a) = \mathbf{R}(\theta_a) \hat{\mathbf{A}} 
+                            \mathbf{R}^{\top}(\theta_a),
+\end{equation}
+kjer je $R(\theta)$ rotacijska matrika, $\hat{\mathbf{A}}$ pa je definirana z~velikostjo 
+polosi elipse $a_1$ in $a_2$ ter enotskih vektorjev $\vec{e}_i$ 
+\begin{equation}
+    \hat{\mathbf{A}} = \sum_{i=1}^{2} a_i^2 \vec{e}_i \vec{e}_i^{\top}.
+\end{equation}
+Matriki $\mathbf{A}$ in $\mathbf{A}^{-1}$ sta simetrični in pozitivno definitni.
+
+\subsection{Prekrivanje dveh elips}
+Definiramo funkcijo
+\begin{equation}
+    F(\vec{r}, \lambda) = \lambda E_a (\vec{r}) + (1 - \lambda) E_a (\vec{r}),
+    \label{eq:f}
+\end{equation}
+ki je odvisna od pozicij $\vec{r}_a, \, \vec{r}_b$ in orientacij $\theta_a, \, \theta_b$
+dveh elips $A$ ter $B$. Parameter $\lambda$ omejimo na interval $[0,1]$, tako, da je 
+$F(\vec{r}, \lambda) \geq 0$. Pri fiksni vrednosti $\lambda$ ima $F(\vec{r}, \lambda)$
+enolični minimum. Pri $\lambda=0$ je minimum $F=0$ pri $\vec{r} = \vec{r}_b$, pri 
+$\lambda=1$ pa je minimum $F=0$ pri $\vec{r} = \vec{r}_a$. Za vse vmesne vrednosti
+$\lambda$, je vrednost $\vec{r}$ pri minimumu $F(\vec{r}, \lambda)$ določena z
+\begin{equation}
+    \nabla F(\vec{r}, \lambda) = 0,
+\end{equation}
+oziroma
+\begin{equation}
+    \lambda \mathbf{A}^{-1} (\vec{r} - \vec{r}_a) + (1-\lambda) \mathbf{B}^{-1}
+    (\vec{r} - \vec{r}_b) = 0.
+\end{equation}
+To lahko napišemo tudi kot
+\begin{align}
+    \vec{r}(\lambda) &- \vec{r}_a = (1-\lambda) \mathbf{A} \mathbf{C}^{-1} 
+        \vec{r}_{a\,b}, \nonumber \\
+    \vec{r}(\lambda) &- \vec{r}_b = - \lambda \mathbf{B} \mathbf{C}^{-1} \vec{r}_{a\,b}, 
+    \label{eq:rab}
+\end{align}
+kjer je $\vec{r}_{a\,b} = \vec{r}_b - \vec{r}_a$ in $\mathbf{C}$ matrika
+\begin{equation}
+    \mathbf{C} = (1-\lambda) \mathbf{A} + \lambda \mathbf{B}.
+    \label{eq:C}
+\end{equation}
+Rešitev~\ref{eq:rab} ustavimo v~\ref{eq:f}, pri čemer upoštevamo tudi~\ref{eq:C}
+in definiramo funkcijo $f$ kot
+\begin{equation}
+    f(\lambda) = F (\vec{r}(\lambda), \lambda) = \lambda (1-\lambda)
+        \vec{r}_{a\,b}^{\top} C^{-1} \vec{r}_{a\,b}.
+\end{equation}
+
