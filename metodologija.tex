@@ -18,17 +18,18 @@
 
 \chapter{Metodologija}
 \label{chMe}
-
 Okviren potek zagozdenja sistema:
 \begin{enumerate}
-\item{Generiranje dvdimenzionalne mreže $N$ točk z~Mitchellovim algoritmom~\cite{mitch}}.
-\item{Postavitev $N$ elips z~ekscentričnostjo $e$ in naključnimi začetnimi orientacijami.}
-\item{Implementacija prekrivalne funkcije~\cite{perram1985} za zaznavanje trkov med elipsami.}
-\item{Postopno večanje elips in relaksacija vrtenja (Monte Carlo).}
-\item{Analiza konfiguracij.}
+\item Z Mitchellovim algoritmom~\cite{mitch} ustvarimo dvodimenzionalno mrežo z $N$ 
+    točkami.
+\item Točke postanejo središča elips z~ekscentričnostjo $e$ in naključnimi začetnimi 
+    orientacijami.
+\item Implementacija prekrivalne funkcije~\cite{perram1985} za zaznavanje trkov med 
+    elipsami.
+\item Postopno večanje elips in relaksacija vrtenja (Monte Carlo).
+\item Analiza konfiguracij.
 \end{enumerate}
-Dvodimenzionalnemu prostoru dodamo še periodične robne pogoje, ki jih vključimo na naslednji 
-način:
+Periodične robne pogoje v~kodi implementiramo na naslednji način
 \begin{lstlisting}[frame=single]  
     dx = point2 - point1
     if dx > 0.5*width:
@@ -38,98 +39,152 @@ način:
 \end{lstlisting}
 
 \section{Mitchellov algoritem}
-
-\begin{figure}[h!]
-    \centering
-    \input{./gnuplot/porazdelitev_1024.tex}
-    \caption[Blue noise]{Porazdelitev $1024$ točk.}
-    \label{slika1}
-\end{figure}
-
 Okviren potek algoritma:
 \begin{enumerate}
-    \item{za začetni točki zgeneriramo naključni poziciji,}
-    \item{zgeneriramo naključne pozicije kandidatov za naslednjo točko,}
-    \item{izberemo tistega kandidata, ki je najdlje od vseh točk porazdelitve 
-    (ima največjo minimalno oddaljenost),}
-    \item{ponovimo korak 2 dokler ne dobimo željeno število točk.}
+    \item Postavimo začetni točki na naključna položaja.
+    \item Zgeneriramo naključne položaje kandidatov za naslednjo točko.
+    \item Izberemo kandidata, ki je najdlje od vseh točk porazdelitve 
+    (ima največjo minimalno oddaljenost).
+    \item Ponavljamo prejšnje korake dokler ne dosežemo izbranega števila točk.
 \end{enumerate}
-Med algoritmom število kandidatov povečujemo sorazmerno s~številom že obstoječih
-točk $N$. Pri nalogi smo tako na vsakem koraku generirali 
-$ \left \lfloor{N/2}\right \rfloor + 1$ kandidatov.\\
+Na vsaki ponovitvi število kandidatov povečamo sorazmerno s~številom že 
+obstoječih točk $n$. Pri nalogi smo tako vsakič generirali 
+$ \left \lfloor{n/2}\right \rfloor + 1$ kandidatov.\\
 %% napisi se nek del kako je to kul in primerjavo z modrim sumom blabla
+Primer za porazdelitev $1024$ točk je prikazana na sliki~\ref{fig:porazdelitev_tock}.
+Zdaj v~točke postavimo elipse enakih velikosti ($a$, $b$ in $e$) in naključnih
+orientacijami $\theta_i$. Potrebujemo še kriterij za zaznavanje prekritih elips,
+kar je razloženo v~naslednjem razdelku.
+\begin{figure}[!ht]
+    \centering
+    \resizebox{.7\textwidth}{!}{\input{./gnuplot/porazdelitev_1024.tex}}
+    \caption[Blue noise]{Porazdelitev $1024$ točk.}
+    \label{fig:porazdelitev_tock}
+\end{figure}
 
 \section{Eliptična kontaktna funkcija}
-
-Kontaktna funkcija je dober kriterij za prekrivanje med dvema elipsama.\footnote{V~nalogi
-uporabljamo dvodimenzionalni ekvivalent tridimenzionalne funkcije povzete 
-po~\cite{perram1985}.}
+Za zaznavanje prekrivanja para elips implementiramo kontaktno funkcijo, povzeto
+po~\cite{perram1985}.
 
 \subsection{Ena elipsa}
-Elipso $A$ definiramo s~funkcijo $E_a$, ki zadošča naslednjemu pogoju
+Elipsa $A$ je definirana s~centrom $\vec{r}_A$, orientacijo $\theta_A$ in pozitivno 
+definitno kvadratično formo $\mathbf{A}$ kot množica točk, za katero velja
 \begin{equation}
-    E_a (\vec{r}-\vec{r}_a, \theta_a) 
+    E_A (\vec{r}-\vec{r}_A, \theta_A) = 
+    (\vec{r} - \vec{r}_A)^{\top} \mathbf{A}^{-1} (\vec{r} - \vec{r}_A)
     \begin{cases}
-        \quad <1 & \text{znotraj A}\\
-        \quad =1 & \text{na površini A}\\
-        \quad >1 & \text{zunaj A}
-      \end{cases}. 
-    \label{eq:cases}
+        \quad <1 & \text{znotraj A},\\
+        \quad =1 & \text{na površini A},\\
+        \quad >1 & \text{zunaj A}.
+    \end{cases}
+    \label{eq:elipsa}
 \end{equation}
-Izberemo
-
+Z~uporabo rotacijske matrike $R(\theta)$ lahko $\mathbf{A}$ zapišemo kot
 \begin{equation}
-    E_a = (\vec{r} - \vec{r}_a)^{\top} \mathbf{A}^{-1} (\vec{r} - \vec{r}_a),
-\label{eq:elipsa}
+    \mathbf{A} (\theta_A) = \mathbf{R}(\theta_A) \hat{\mathbf{A}} 
+                            \mathbf{R}^{\top}(\theta_A).
 \end{equation}
-kjer je $\vec{r}_a$ center elipse. Matriko $\mathbf{A}$ lahko zapišemo kot
-\begin{equation}
-    \mathbf{A} (\theta_a) = \mathbf{R}(\theta_a) \hat{\mathbf{A}} 
-                            \mathbf{R}^{\top}(\theta_a),
-\end{equation}
-kjer je $R(\theta)$ rotacijska matrika, $\hat{\mathbf{A}}$ pa je definirana z~velikostjo 
-polosi elipse $a_1$ in $a_2$ ter enotskih vektorjev $\vec{e}_i$ 
+Kjer je $\hat{\mathbf{A}}$ določena z~velikostjo polosi elipse $a_1$ in $a_2$ 
+ter enotskih vektorjev $\vec{e}_i$ 
 \begin{equation}
     \hat{\mathbf{A}} = \sum_{i=1}^{2} a_i^2 \vec{e}_i \vec{e}_i^{\top}.
 \end{equation}
-Matriki $\mathbf{A}$ in $\mathbf{A}^{-1}$ sta simetrični in pozitivno definitni.
 
 \subsection{Prekrivanje dveh elips}
 Definiramo funkcijo
 \begin{equation}
-    F(\vec{r}, \lambda) = \lambda E_a (\vec{r}) + (1 - \lambda) E_a (\vec{r}),
-    \label{eq:f}
+    F(\vec{r}, \lambda) = \lambda E_A (\vec{r}) + (1 - \lambda) E_B (\vec{r}),
+    \label{eq:F}
 \end{equation}
-ki je odvisna od pozicij $\vec{r}_a, \, \vec{r}_b$ in orientacij $\theta_a, \, \theta_b$
-dveh elips $A$ ter $B$. Parameter $\lambda$ omejimo na interval $[0,1]$, tako, da je 
-$F(\vec{r}, \lambda) \geq 0$. Pri fiksni vrednosti $\lambda$ ima $F(\vec{r}, \lambda)$
-enolični minimum. Pri $\lambda=0$ je minimum $F=0$ pri $\vec{r} = \vec{r}_b$, pri 
-$\lambda=1$ pa je minimum $F=0$ pri $\vec{r} = \vec{r}_a$. Za vse vmesne vrednosti
-$\lambda$, je vrednost $\vec{r}$ pri minimumu $F(\vec{r}, \lambda)$ določena z
+kot vsoto dveh elips $A$ in $B$, ter izbranega parametra $\lambda$. Tega omejimo na
+interval $[0,1]$, tako, da je $F(\vec{r}, \lambda) \geq 0$. Pri fiksni vrednosti 
+$\lambda$ ima $F(\vec{r}, \lambda)$ enolični minimum. 
+Za skrajni vrednosti lahko trivialno zaključimo, da je minimum $F=0$ pri 
+$\vec{r} = \vec{r}_B$ za $\lambda=0$ oziroma pri $\vec{r} = \vec{r}_A$ za 
+$\lambda=1$. 
+Za vse vmesne vrednosti $\lambda$ lego minimuma $\vec{r}$ dobimo z~minimizacijo.
+Sledi
 \begin{equation}
     \nabla F(\vec{r}, \lambda) = 0,
 \end{equation}
 oziroma
 \begin{equation}
-    \lambda \mathbf{A}^{-1} (\vec{r} - \vec{r}_a) + (1-\lambda) \mathbf{B}^{-1}
-    (\vec{r} - \vec{r}_b) = 0.
+    \lambda \mathbf{A}^{-1} (\vec{r} - \vec{r}_A) + (1-\lambda) \mathbf{B}^{-1}
+    (\vec{r} - \vec{r}_B) = 0.
+    \label{eq:min_F}
 \end{equation}
-To lahko napišemo tudi kot
+Rešitev minimizacije je pot $r(\lambda)$ med centroma elips, ki jo lahko izrazimo 
+iz enačbe~\ref{eq:min_F} kot sistem
 \begin{align}
-    \vec{r}(\lambda) &- \vec{r}_a = (1-\lambda) \mathbf{A} \mathbf{C}^{-1} 
-        \vec{r}_{a\,b}, \nonumber \\
-    \vec{r}(\lambda) &- \vec{r}_b = - \lambda \mathbf{B} \mathbf{C}^{-1} \vec{r}_{a\,b}, 
+    \vec{r}(\lambda) &- \vec{r}_A = (1-\lambda) \mathbf{A} \mathbf{C}^{-1} 
+        \vec{r}_{A B}, \nonumber \\
+    \vec{r}(\lambda) &- \vec{r}_B = - \lambda \mathbf{B} \mathbf{C}^{-1} \vec{r}_{A B}, 
     \label{eq:rab}
 \end{align}
-kjer je $\vec{r}_{a\,b} = \vec{r}_b - \vec{r}_a$ in $\mathbf{C}$ matrika
+kjer je $\vec{r}_{A B} = \vec{r}_B - \vec{r}_A$ in $\mathbf{C}$ vsota
 \begin{equation}
     \mathbf{C} = (1-\lambda) \mathbf{A} + \lambda \mathbf{B}.
     \label{eq:C}
 \end{equation}
-Rešitev~\ref{eq:rab} ustavimo v~\ref{eq:f}, pri čemer upoštevamo tudi~\ref{eq:C}
-in definiramo funkcijo $f$ kot
+saj sta matriki $\mathbf{A}$ in $\mathbf{B}$ pozitivno 
+definitni.
+Rešitev~\ref{eq:rab} uporabimo v~enačbi~\ref{eq:F}, pri čemer upoštevamo tudi
+enačbo~\ref{eq:C} in definiramo funkcijo $f$, ki ni več eksplicitno odvisna od 
+$r(\lambda)$
 \begin{equation}
     f(\lambda) = F (\vec{r}(\lambda), \lambda) = \lambda (1-\lambda)
-        \vec{r}_{a\,b}^{\top} C^{-1} \vec{r}_{a\,b}.
+        \vec{r}_{A B}^{\top} \mathbf{C}^{-1} \vec{r}_{A B}.
 \end{equation}
+\begin{figure}[!ht]
+    \centering
+    \resizebox{.5\textwidth}{!}{\input{./figures/elipse.tex}}
+    \caption{Minimalna pot $\vec{r}(\lambda)$ gre skozi presek elips $A$ in $B$.}
+    \label{fig:path}
+\end{figure}\\
+\noindent Poglejmo kako se obnaša pot $\vec{r}(\lambda), \, \lambda \in [0,1]$, ki povezuje 
+centra elips med seboj, kar lahko vidimo na sliki~\ref{fig:path}.
+Iz enačbe~\ref{eq:elipsa} sledi, da je vrednost $F(\vec{r}, \lambda)$ na območju 
+izven obeh elips $F(\vec{r}, \lambda)>1$. Če se $A$ in $B$ ne sekata, potem mora imeti 
+pot minimuma $F(\vec{r}, \lambda)>1$ vrednost večjo od $1$. Če se $A$ in $B$ prekrivata 
+potem je vrednost $F(\vec{r}, \lambda)<1$ na preseku $A \cap B$ za katerokoli vrednost 
+$\lambda \in [0,1]$.  Sledi, da je vrednost minimuma $F(\vec{r}, \lambda)<1$ zagotovo 
+manjša od $1$. To pomeni, da pot $\vec{r}(\lambda)$ zagotovo ne bo šla izven območij
+$A$ in $B$. Zaključimo, da za vrednosti $F(\vec{r}(\lambda), \lambda) = 
+f(\lambda)$ velja
+\begin{equation}
+    \max_{0<\lambda<1} f(\lambda)
+    \begin{cases}
+        <1 \quad\text{$A$ in $B$ se prekrivata,}\\
+        =1 \quad\text{$A$ in $B$ sta tangentni,}\\
+        >1 \quad\text{$A$ in $B$ se ne dotikata.}
+    \end{cases}
+    \label{eq:kriterij}
+\end{equation}
+Te lastnosti izkoristimo pri definiciji kontaktne funkcije med dvema elipsama, tako da
+velja
+\begin{equation}
+    F_{A B}(\vec{r}_{A B}, \theta_A, \theta_B) =
+    \max_{0<\lambda<1} f(\lambda) = \mu^2.
+    \label{eq:kontakt}
+\end{equation}
+ Vrednost $\mu$ je linearni faktor s~katerim moramo množiti elipsi $A$ in $B$, da 
+% postaneta tangentni.
+\subsection{Zaznavanje prekrivanj s~kontaktno funkcijo}
+Vpeljano kontaktno funkcijo uporabimo na porazdelitvi elips, ki smo jo zgenerirali
+z~Mitchellovim algoritmom. 
+Za primer poglejmo sliko~\ref{fig:zaznavanje_trkov}, ki prikazuje porazdelitev
+$128$ elips. Izberemo naključno elipso in pogledamo njeno okolico polmera $2a$.
+S~tem zmanjšamo število parov elips na katerih moramo računati kontaktno funkcijo.
+\begin{figure}[!ht]
+    \centering
+    \resizebox{.32\textwidth}{!}{\input{./figures/zaznavanje_prekrivanj1.tex}}
+    \resizebox{.32\textwidth}{!}{\input{./figures/zaznavanje_prekrivanj2.tex}}
+    \resizebox{.32\textwidth}{!}{\input{./figures/zaznavanje_prekrivanj3.tex}}
+    \caption[Blue noise]{Prikaz porazdelitve~$128$ elips.
+    Na sredinski sliki izberemo naključno elipso in pogledamo njeno okolico polmera 
+    $2a$. Na zadnji sliki so označene samo še tiste elipse iz okolice s~katerimi 
+    se izbrana elipsa prekriva.}
+    \label{fig:zaznavanje_trkov}
+\end{figure}
 
+\section{Simulacije}

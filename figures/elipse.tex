@@ -1,0 +1,40 @@
+\begin{tikzpicture}
+
+\pgfmathsetmacro{\as}{1.5};
+\pgfmathsetmacro{\bs}{0.5};
+\pgfmathsetmacro{\cs}{sqrt(\as^2 - \bs^2)}
+\pgfmathsetmacro{\al}{1.5};
+\pgfmathsetmacro{\bl}{1};
+\pgfmathsetmacro{\cl}{sqrt(\al^2 - \bl^2)}
+\pgfmathsetmacro{\xs}{abs(\cs - \cl)}
+
+
+\draw (0, 0) ellipse [x radius = \as cm, y radius = \bs cm] node[above, scale=0.8] {$\vec{r}_a$};
+\draw [rotate around={-45:(1, 1.5)}] (1,1.5) ellipse [x radius = \al cm, y radius = \bl cm] node[above, scale=0.8] {$\vec{r}_b$};
+
+\begin{axis}[
+    anchor=origin,
+    x=1cm, y=1cm,
+    no marks,
+    clip=false,
+    axis line style={draw=none},
+    tick style={draw=none},
+    yticklabels={,,},
+    xticklabels={,,},
+    ]
+    % this parametric plot was calculated with mathematica
+    \addplot [domain=0:1,samples=100,mygreen,thick]({(33.75*(1 - x)*x)/(9 + 47*x - 20*x^2) + ( 9*(1 - x) * (1 + (11*x)/2))/(9 + 47*x - 20*x^2)}, {5*(1 - x)*x/(2 * (9 + 47*x - 20*x^2)) + ( 1.5*(1 - x) * (9 * (1 - x) + 13 *x /2))/(9 + 47*x- 20*x^2});
+
+\end{axis}
+
+\node[scale=0.8] at (1.5,0.5) {$\vec{r}(\lambda )$};
+
+\filldraw[black] (0, 0) circle [radius = 0.01 cm];
+\filldraw[black] (1, 1.5) circle [radius = 0.01 cm];
+
+\node[scale=0.8] at (-0.5,0.7) {$A$};
+\node[scale=0.8] at (-0.5,2) {$B$};
+
+\end{tikzpicture}
+% 33.75*(1 - x)*x/(9 + 47*x - 20*x^2) + ( 9*(1 - x) * (1 + (11*x)/2))/(9 + 47*x - 20*x^2)
+% 5*(1 - x)*x/(2 * (9 + 47*x - 20*x^2)) + ( 1.5*(1 - x) * (9 * (1 - x) + 13 *x /2))/(9 + 47*x- 20*x^2)
