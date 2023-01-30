@@ -1,7 +1,7 @@
 ## Steps:
 ## 1. Mitchell algorithm
 
-![Why blue noise is better than white](images/blue_noise.png "comparing blue and white noise")
+![Why blue noise is better than white](figures/blue_noise.png "comparing blue and white noise")
     1. choose starting circles, 
     2. generate new points, that are candidates for the next circle,
     3. select the one that is the furthest away from any other point (with largest minimum 
@@ -14,7 +14,7 @@ Example for 1024 points:
 
 <div style="text-align: center;">
 
-![porazdelitev](images/porazdelitev_1024.png "končna porazdelitev")
+![porazdelitev](figures/porazdelitev_1024.png "končna porazdelitev")
 
 </div>
 
