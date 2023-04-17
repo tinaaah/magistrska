@@ -3,7 +3,8 @@ import random
 import copy
 import numpy as np
 from matplotlib import patches
-from scipy.spatial.distance import cdist 
+from scipy.spatial.distance import cdist
+from scipy.optimize import brute
 
 cos = math.cos
 sin = math.sin
@@ -77,33 +78,73 @@ class ellipse():
 class ellipses():
     def __init__(self, distribution, a, b):
         self.grid = distribution.grid
+        self.periodic_metric = distribution.periodic_metric
         self.width, self.height = self.grid
         self.N = distribution.N
         self.a, self.b = a, b
+        self.x = np.linspace(0, 1, endpoint=True, num=100)
 
         ## create ellipses from centres
         self.ell = np.apply_along_axis(
             lambda center: ellipse(center, random.uniform(0,1)*pi*2), 
             1, distribution.samples   )
 
+        ## define ellipse matrices for all ellipses
+        for sample in self.ell:
+            sample.A = Rotate(sample.angle, np.diag([self.a**2, self.b**2]))
+        
+    ## fix ellipse matrices when changing size
+    @property
+    def fix_A(self):
+        for sample in self.ell:
+            sample.A = Rotate( sample.angle, np.diag( [self.a**2, self.b**2] ))
+    
+
+    ## orientational correlation function
+    def psi2(self, ellipse, proximity):
+        if len(proximity) < 2:
+            psi = 1
+        else:
+            psi = np.sum([np.exp(2*1j*(ellipse.angle-ellipse_b.angle)) for ellipse_b in proximity])/len(proximity)
+        return psi
+    
+    def angle_correlation(self, radius_range):
+            g = np.zeros(len(radius_range))
+
+            for i in range(len(radius_range)):
+                d_a = radius_range[i]
+
+                ## distance matrix between all the centres
+                S = [x.center for x in self.ell]
+                distance = cdist(S, S, self.periodic_metric)
+
+                ## matrix of neighbouring ellipses, which are less than d_a away
+                neighbours = [np.where((line<=d_a) & (line!=0)) for line in distance]
+
+                ## calculate all psi_2 at current r
+                psi_2 = [self.psi2(self.ell[j], self.ell[neighbours[j]]) for j in range(self.N)] 
+
+                ## g(r) for each j
+                g[i] = np.average( [[np.abs(psi_2[j]*np.conjugate(psi_2[k])) for k in range(self.N)] for j in range(self.N)])
+            return g
+
     ## input is an ellipse: centre, width(a), height(b) and angle
     ## f = lambda*(1-lambda)*r^T * A^(-1) * r
     def f(self, x, E1, E2):
-        A1 = np.diag( [self.a**2, self.b**2] )
-        theta1 = E1.angle
-        A1 = Rotate(theta1, A1)
-
-        A2 = np.diag( [self.a**2, self.b**2] )
-        theta2 = E2.angle
-        A2 = Rotate(theta2, A2)
+        A1 = E1.A
+        A2 = E2.A
 
         dr = distribution.check_period(E1.center, E2.center, self.width, self.height)
         C = np.linalg.inv( (1-x)*A1 + x*A2 )
+        # C = np.linalg.inv( (1-x[0])*A1 + x[0]*A2 )
         return (x*(1-x)*dr@C@dr.T)[0,0]
     
     ## mu is maximum value of f
     def mu(self, E1, E2):
-        x = np.linspace(0, 1, endpoint=True, num=100)
+        # ranges = slice(-1, 0, 1/100)
+        # max_x = brute(lambda x: -self.f(x,E1,E2), (ranges,), finish=None)
+        # return -max_x
+        x = self.x
         y = np.vectorize(self.f)
         Y = y(x, E1, E2)
         return max(Y)
@@ -118,7 +159,7 @@ class ellipses():
             #new_E = np.sum(-np.log(all_mu))
             
             ## energy is zero unless in contact
-            E = -np.log(all_mu[np.where(all_mu<1)])
+            E = -np.log(all_mu[np.where(all_mu<=1)])
             new_Z = len(E)
             new_E = np.sum(E)
         return np.asarray([new_E, new_Z])
@@ -138,9 +179,10 @@ class ellipses():
             ## randomly select an ellipse and copy it
             j = np.random.randint(0, self.N-1)
             j_ellipse = copy.deepcopy(self.ell[j])
-
+            
             ## generate random angle theta
             j_ellipse.angle = np.random.vonmises(j_ellipse.angle, kappa=3)
+            j_ellipse.A = Rotate(j_ellipse.angle, np.diag( [self.a**2, self.b**2] ))
 
             ## because delta_theta can get to 2*pi
             def transform(x):
@@ -159,6 +201,7 @@ class ellipses():
             if (delta_E<=0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1)/u):
                 ## accept this step
                 self.ell[j].angle = j_ellipse.angle
+                self.ell[j].A = Rotate(j_ellipse.angle, np.diag( [self.a**2, self.b**2] ))
 
                 ## save parameters for later
                 ## change energy
@@ -168,6 +211,13 @@ class ellipses():
                 accepted_theta[count] = delta_theta
                 self.ell[j].accepted_rot += 1
                 count += 1
+
+                ## change energy of all neighbors as well
+                neighbourhood = self.ell[proximity[j]]
+                for neighbour in neighbourhood:
+                    k = np.where(self.ell == neighbour)[0][0]
+                    E[t,k], Z[t,k] = self.energy(self.ell[k], self.ell[proximity[k]])
+
             else:
                 ## save parameters for later
                 rejected_theta[t-count] = delta_theta
@@ -178,7 +228,7 @@ class ellipses():
             if sum(E[t]) == 0:
                 break
         
-        ## calculate energy for all pairs after final rotation
+        ## calculate energy for all pairs after the final rotation
         temp = np.asarray([self.energy(self.ell[i], self.ell[proximity[i]]) for i in range(self.N)])
         E[t] = temp[:,0]
         Z[t] = temp[:,1]
