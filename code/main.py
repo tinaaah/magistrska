@@ -141,9 +141,6 @@ class ellipses():
     
     ## mu is maximum value of f
     def mu(self, E1, E2):
-        # ranges = slice(-1, 0, 1/100)
-        # max_x = brute(lambda x: -self.f(x,E1,E2), (ranges,), finish=None)
-        # return -max_x
         x = self.x
         y = np.vectorize(self.f)
         Y = y(x, E1, E2)
@@ -155,9 +152,6 @@ class ellipses():
         if len(proximity) != 0:
             all_mu = np.array( [self.mu(j_ellipse, point_b) for point_b in proximity])
 
-            ## energy log of all interactions
-            #new_E = np.sum(-np.log(all_mu))
-            
             ## energy is zero unless in contact
             E = -np.log(all_mu[np.where(all_mu<=1)])
             new_Z = len(E)
@@ -165,7 +159,7 @@ class ellipses():
         return np.asarray([new_E, new_Z])
             
     def metropolis(self, proximity, n=100, T=0):
-        count, E, Z = 0, np.zeros( shape=(n, self.N) ), np.zeros( shape=(n, self.N) )
+        t, E, Z = 0, np.zeros( shape=(n, self.N) ), np.zeros( shape=(n, self.N) )
         accepted_theta, rejected_theta = np.nan*np.ones(n), np.nan*np.ones(n)
 
         ## energy of the starting system    
@@ -173,9 +167,10 @@ class ellipses():
         E[0] = temp[:,0]
         Z[0] = temp[:,1]
 
-        for t in range(1, n):
-            E[t] = E[t-1]
-            Z[t] = Z[t-1]
+        for i in range(1, n):
+            E[i] = E[i-1]
+            Z[i] = Z[i-1]
+
             ## randomly select an ellipse and copy it
             j = np.random.randint(0, self.N-1)
             j_ellipse = copy.deepcopy(self.ell[j])
@@ -193,43 +188,44 @@ class ellipses():
            
             ## decide if you want to accept new step or not
             new_E, new_Z = self.energy(j_ellipse, self.ell[proximity[j]])
-            delta_E = new_E - E[t,j]
+            delta_E = new_E - E[i,j]
 
             ## boltzmann probability distribution
             u = random.uniform(0,1)
 
-            if (delta_E<=0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1)/u):
+            if (delta_E<=0 and u<1) or (delta_E>0 and delta_E<=T*math.log(1/u)):
                 ## accept this step
                 self.ell[j].angle = j_ellipse.angle
                 self.ell[j].A = Rotate(j_ellipse.angle, np.diag( [self.a**2, self.b**2] ))
 
                 ## save parameters for later
                 ## change energy
-                E[t,j] = new_E
-                Z[t,j] = new_Z
-                ## delta_theta
-                accepted_theta[count] = delta_theta
-                self.ell[j].accepted_rot += 1
-                count += 1
+                E[i,j] = new_E
+                Z[i,j] = new_Z
 
                 ## change energy of all neighbors as well
                 neighbourhood = self.ell[proximity[j]]
                 for neighbour in neighbourhood:
                     k = np.where(self.ell == neighbour)[0][0]
-                    E[t,k], Z[t,k] = self.energy(self.ell[k], self.ell[proximity[k]])
+                    E[i,k], Z[i,k] = self.energy(self.ell[k], self.ell[proximity[k]])
+
+                ## delta_theta
+                accepted_theta[t] = delta_theta
+                self.ell[j].accepted_rot += 1
+                t += 1
 
             else:
                 ## save parameters for later
-                rejected_theta[t-count] = delta_theta
+                rejected_theta[i-t] = delta_theta
                 self.ell[j].rejected_rot += 1
                 continue
 
             ## If energy reaches zero stop iterating
-            if sum(E[t]) == 0:
+            if sum(E[i]) == 0:
                 break
         
         ## calculate energy for all pairs after the final rotation
         temp = np.asarray([self.energy(self.ell[i], self.ell[proximity[i]]) for i in range(self.N)])
-        E[t] = temp[:,0]
-        Z[t] = temp[:,1]
+        E[i] = temp[:,0]
+        Z[i] = temp[:,1]
         return [E, Z, accepted_theta, rejected_theta]

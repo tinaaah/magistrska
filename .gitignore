@@ -16,3 +16,6 @@ TO_DO.md
 **/*.out
 **/*.gz
 **/*.xmpdata
+**/*checkpoint*
+**/*.html
+figures/gifs/*

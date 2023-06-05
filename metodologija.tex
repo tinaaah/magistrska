@@ -53,8 +53,8 @@ $ \left \lfloor{n/2}\right \rfloor + 1$ kandidatov.\\
 %% napisi se nek del kako je to kul in primerjavo z modrim sumom blabla
 Primer za porazdelitev $1024$ točk je prikazana na sliki~\ref{fig:porazdelitev_tock}.
 Zdaj v~točke postavimo elipse enakih velikosti ($a$, $b$ in $e$) in naključnih
-orientacijami $\theta_i$. Potrebujemo še kriterij za zaznavanje prekritih elips,
-kar je razloženo v~naslednjem razdelku.
+orientacij $\theta_i$. Potrebujemo še kriterij za zaznavanje prekritih elips,
+kar je predstavljeno v~naslednjem razdelku.
 \begin{figure}[!ht]
     \centering
     \resizebox{.7\textwidth}{!}{\input{./gnuplot/porazdelitev_1024.tex}}
@@ -97,7 +97,7 @@ Definiramo funkcijo
     \label{eq:F}
 \end{equation}
 kot vsoto dveh elips $A$ in $B$, ter izbranega parametra $\lambda$. Tega omejimo na
-interval $[0,1]$, tako, da je $F(\vec{r}, \lambda) \geq 0$. Pri fiksni vrednosti 
+interval $[0,1]$ tako, da je $F(\vec{r}, \lambda) \geq 0$. Pri fiksni vrednosti 
 $\lambda$ ima $F(\vec{r}, \lambda)$ enolični minimum. 
 Za skrajni vrednosti lahko trivialno zaključimo, da je minimum $F=0$ pri 
 $\vec{r} = \vec{r}_B$ za $\lambda=0$ oziroma pri $\vec{r} = \vec{r}_A$ za 
@@ -113,7 +113,7 @@ oziroma
     (\vec{r} - \vec{r}_B) = 0.
     \label{eq:min_F}
 \end{equation}
-Rešitev minimizacije je pot $r(\lambda)$ med centroma elips, ki jo lahko izrazimo 
+Rešitev minimizacije je pot $\vec{r}(\lambda)$ med centroma elips, ki jo lahko izrazimo 
 iz enačbe~\ref{eq:min_F} kot sistem
 \begin{align}
     \vec{r}(\lambda) &- \vec{r}_A = (1-\lambda) \mathbf{A} \mathbf{C}^{-1} 
@@ -121,7 +121,7 @@ iz enačbe~\ref{eq:min_F} kot sistem
     \vec{r}(\lambda) &- \vec{r}_B = - \lambda \mathbf{B} \mathbf{C}^{-1} \vec{r}_{A B}, 
     \label{eq:rab}
 \end{align}
-kjer je $\vec{r}_{A B} = \vec{r}_B - \vec{r}_A$ in $\mathbf{C}$ vsota
+kjer sta $\vec{r}_{A B} = \vec{r}_B - \vec{r}_A$ in $\mathbf{C}$ vsota
 \begin{equation}
     \mathbf{C} = (1-\lambda) \mathbf{A} + \lambda \mathbf{B}.
     \label{eq:C}
@@ -130,7 +130,7 @@ saj sta matriki $\mathbf{A}$ in $\mathbf{B}$ pozitivno
 definitni.
 Rešitev~\ref{eq:rab} uporabimo v~enačbi~\ref{eq:F}, pri čemer upoštevamo tudi
 enačbo~\ref{eq:C} in definiramo funkcijo $f$, ki ni več eksplicitno odvisna od 
-$r(\lambda)$
+$\vec{r}(\lambda)$
 \begin{equation}
     f(\lambda) = F (\vec{r}(\lambda), \lambda) = \lambda (1-\lambda)
         \vec{r}_{A B}^{\top} \mathbf{C}^{-1} \vec{r}_{A B}.
@@ -142,7 +142,7 @@ $r(\lambda)$
     \label{fig:path}
 \end{figure}\\
 \noindent Poglejmo kako se obnaša pot $\vec{r}(\lambda), \, \lambda \in [0,1]$, ki povezuje 
-centra elips med seboj, kar lahko vidimo na sliki~\ref{fig:path}.
+centra elips med seboj -- kar lahko vidimo na sliki~\ref{fig:path}.
 Iz enačbe~\ref{eq:elipsa} sledi, da je vrednost $F(\vec{r}, \lambda)$ na območju 
 izven obeh elips $F(\vec{r}, \lambda)>1$. Če se $A$ in $B$ ne sekata, potem mora imeti 
 pot minimuma $F(\vec{r}, \lambda)>1$ vrednost večjo od $1$. Če se $A$ in $B$ prekrivata 

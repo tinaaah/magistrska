@@ -46,8 +46,8 @@ $F(\vec{r}, \lambda) = \lambda E_a(\vec{r}) + (1-\lambda) E_b(\vec{r})$
 Parameter $\lambda$ is bound to the interval $0 < \lambda < 1$, so that
 $F(\vec{r}, \lambda) \geq 0$. On the interval $\lambda \in [0, 1]$ function
 $F(\vec{r}, \lambda)$ has a global minimum along the curve  $\vec{r(\lambda)}$. 
-Boundary conditions (where $F=0$) are $\vec{r}(0) = \vec{r_a}$ and $\vec{r}(1) = 
-\vec{r_b)$. Values of $F$ on the interval are defined with an equation: 
+Boundary conditions (where $F=0$) are $\vec{r}(0) = \vec{r_a}$ and 
+$\vec{r}(1) = \vec{r_b}$. Values of $F$ on the interval are defined with an equation: 
 $\nabla F(\vec{r}, \lambda) = 0$, explicitly:\
 $\lambda A^{-1} (\vec{r} - \vec{r}_a) + (1-\lambda) B^{-1} (\vec{r} - \vec{r}_b) = 0 $.
 
