@@ -1,7 +1,7 @@
 **/__pycache__
 .vscode
 TO_DO.md
-.venv
+.*venv*
 **/*.xmpi
 **/*.aux
 **/*eps-converted-to.pdf
