@@ -4,7 +4,6 @@ import copy
 import numpy as np
 from matplotlib import patches
 from scipy.spatial.distance import cdist
-from scipy.optimize import brute
 
 cos = math.cos
 sin = math.sin
@@ -48,18 +47,12 @@ class distribution():
         self.samples = samples
     
     ## define pbc metric
-    def check_period(point1, point2, width, height):
-        dx = point1[0] - point2[0]
-        dy = point1[1] - point2[1]
-
-        if dx > 0.5*width:      dx = dx - width
-        elif dx < -0.5*width:   dx = dx + width  
-        if dy > 0.5*height:     dy = dy - height
-        elif dy < -0.5*height:  dy = dy + height
-        return np.array([dx, dy])
+    def check_period(point1, point2, grid):
+        grid2 = grid*0.5
+        return (point1 - point2 + grid2) % grid - grid2
 
     def periodic_metric(self, point1, point2, vector=False):
-        dx,dy = distribution.check_period(point1, point2, self.width, self.height)
+        dx, dy = distribution.check_period(point1, point2, self.grid)
         return math.sqrt( (dx)**2 + (dy)**2)
 
 
@@ -76,18 +69,18 @@ class ellipse():
         return patches.Ellipse(self.center, a, b, angle=self.angle*180/math.pi)
 
 class ellipses():
-    def __init__(self, distribution, a, b):
-        self.grid = distribution.grid
-        self.periodic_metric = distribution.periodic_metric
+    def __init__(self, dist, a, b):
+        self.grid = dist.grid
+        self.periodic_metric = dist.periodic_metric
         self.width, self.height = self.grid
-        self.N = distribution.N
+        self.N = dist.N
         self.a, self.b = a, b
         self.x = np.linspace(0, 1, endpoint=True, num=100)
 
         ## create ellipses from centres
         self.ell = np.apply_along_axis(
             lambda center: ellipse(center, random.uniform(0,1)*pi*2), 
-            1, distribution.samples   )
+            1, dist.samples   )
 
         ## define ellipse matrices for all ellipses
         for sample in self.ell:
@@ -99,7 +92,6 @@ class ellipses():
         for sample in self.ell:
             sample.A = Rotate( sample.angle, np.diag( [self.a**2, self.b**2] ))
     
-
     ## orientational correlation function
     def psi2(self, ellipse, proximity):
         if len(proximity) < 2:
@@ -134,7 +126,7 @@ class ellipses():
         A1 = E1.A
         A2 = E2.A
 
-        dr = distribution.check_period(E1.center, E2.center, self.width, self.height)
+        dr = distribution.check_period(E1.center, E2.center, self.grid)
         C = np.linalg.inv( (1-x)*A1 + x*A2 )
         # C = np.linalg.inv( (1-x[0])*A1 + x[0]*A2 )
         return (x*(1-x)*dr@C@dr.T)[0,0]
