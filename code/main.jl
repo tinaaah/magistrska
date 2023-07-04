@@ -111,7 +111,7 @@ function psi_2(ellipse_a, a_vicinity)
 	return psi
 end
 
-function angle_correlation(distribution, r_max)
+function angle_correlation(distribution, r_max, grid)
 	radius_range = vcat(range(0, r_max, length=100))
     g = zeros(size(radius_range, 1));
 	N = size(distribution, 1);
@@ -145,7 +145,7 @@ function vicinity(i, in_proximity, distribution)
 	return distribution[temp], temp
 	end
 
-function metropolis(distribution, in_proximity, n=100, T=0)
+function metropolis(distribution, in_proximity, grid, n=100, T=0)
 	N = size(distribution, 1);
 	last_i = 0;
 

@@ -1,4 +1,4 @@
-import main
+import main_cython
 import math
 import random
 import tikzplotlib
@@ -46,7 +46,7 @@ def draw_state(file_name, Energy, coord_number, variable="energy"):
         elif variable == "coord_number":
             v = coord_number[-1,index]
 
-        ellipse = main.ellipse.convert_to_patches(center, a_width, b_height)
+        ellipse = main_cython.ellipse.convert_to_patches(center, a_width, b_height)
         plt.gca().add_patch(ellipse)
         ellipse.set_facecolor(mapper.to_rgba(v)[0])
         ellipse.set_label('_nolegend_')
@@ -75,6 +75,10 @@ def one_run(a_i, e=5/2, state=False):
     ## update a in matrices A
     new_dist.fix_A
 
+    print("I am running")
+    elapsed_1 = timeit.default_timer() - start_time
+    print(elapsed_1)
+
     ## distance matrix between all the centres
     S = [x.center for x in new_dist.ell]
     distance_matrix = distance.cdist(S, S, dist.periodic_metric)
@@ -83,7 +87,16 @@ def one_run(a_i, e=5/2, state=False):
     in_proximity = [np.where((line<=2*new_dist.a) & (line!=0)) for line in distance_matrix]
 
     ## find new state
-    Energy, coord_number, accepted, rejected = new_dist.metropolis(in_proximity, n=10)
+    print("you are here")
+    elapsed_2 = timeit.default_timer() - start_time
+    print(elapsed_2)
+
+    Energy, coord_number, accepted, rejected = new_dist.metropolis(in_proximity, n=1000)
+
+    print(Energy)
+    elapsed_3 = timeit.default_timer() - start_time
+    print(elapsed_3)
+    
     correlation = new_dist.angle_correlation(r*new_dist.a)
 
     if state == True:
@@ -93,10 +106,15 @@ def one_run(a_i, e=5/2, state=False):
         pic_num += 1
 
     elapsed = timeit.default_timer() - start_time
+    print("The end of the function")
+    print(elapsed)
+
     return [Energy, coord_number, accepted, rejected, correlation], elapsed
 
 if __name__ == "__main__":
     ## define parametres
+    print("This is the beginning")
+ 
     grid = [100, 100]
     width, height = grid
     m, N = 2, 128                   #  number of starting points and number of all points
@@ -104,7 +122,7 @@ if __name__ == "__main__":
     ## Selects two random points on a grid
     initial = np.array( [[random.uniform(0,1)*width, random.uniform(0,1)*height] for i in range(m)] )
     ## and and generate distribution with Mitchell algorithm
-    dist = main.distribution(initial, grid, N)
+    dist = main_cython.distribution(initial, grid, N)
 
     ## change circles into ellipses
     a0, b0 = 5, 2                       # big and small semi-axis
@@ -112,14 +130,16 @@ if __name__ == "__main__":
     a_width, b_height = 2*a0, 2*b0      # values for matplotlib.pathces
 
     ## create ellipses
-    new_dist = main.ellipses(dist, a0, b0)
+    new_dist = main_cython.ellipses(dist, a0, b0)
 
     ## distance matrix between all the centres
     S = [x.center for x in new_dist.ell]
     distance_matrix = distance.cdist(S, S, dist.periodic_metric)
 
     ## run
+    print("I'm gonna do the run now")
     parmeters, time = one_run(a_i=7, e=5/2, state=True)
+    print("This is the end")
     print(time)
 
     # threads = []
@@ -132,3 +152,4 @@ if __name__ == "__main__":
     
     # for thread in threads:
     #     thread.join()
+    
