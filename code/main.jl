@@ -41,18 +41,19 @@ end
 
 ## define ellipses with a, b, center vector and generate random angle and A matrix
 mutable struct Ellipse
-    center::Vector{Float64}
-    a::Float64
-    b::Float64
-	angle::Float64
-	A::Matrix{Float64}
-	colour::String
+    center::Vector{Float64};
+    a::Float64;
+    b::Float64;
+	angle::Float64;
+	A::Matrix{Float64};
+	energy::Float64;
+	coord::Int64;
 
     function Ellipse(center::Vector{Float64}, a::Float64, b::Float64)
-        angle = rand() * 2*pi
-		A = Rotate(angle, diagm([a^2, b^2]))
-		colour = "#577590"
-        new(center, a, b, angle, A, colour)
+        angle = rand() * 2*pi;
+		A = Rotate(angle, diagm([a^2, b^2]));
+		energy, coord = 0, 0;
+        new(center, a, b, angle, A, energy, coord);
     end
 
 end
@@ -224,5 +225,95 @@ function metropolis(distribution, in_proximity, grid, n=100, T=0)
 	result = [energy(distribution[i], vicinities[i], grid) for i in 1:N];
 	(E[last_i,:], Z[last_i,:]) = (getindex.(result, 1), getindex.(result, 2))
 
+	for k in 1:size(distribution, 1)
+		distribution[k].energy = E[last_i,k];
+		distribution[k].coord = Z[last_i,k];
+	end
+
 	return E, Z, collect(skipmissing(accepted_theta)), collect(skipmissing(rejected_theta));
+end
+
+## this algorithm returns only the last state
+function metropolis2(distribution, in_proximity, grid, n=100, T=0)
+	N = size(distribution, 1);
+	last_i = 0;
+
+	t=0;
+	accepted_theta, rejected_theta = Vector{Union{Float64,Missing}}(missing, n), Vector{Union{Float64,Missing}}(missing, n);
+
+	## get vicinities of all ellipses
+	results = [vicinity(i, in_proximity, distribution) for i in 1:N];
+	(vicinities, indices) = (getindex.(results, 1), getindex.(results, 2))
+
+	##energy of the starting system    
+	result = [energy(distribution[i], vicinities[i], grid) for i in 1:N];
+	(E, Z) = (getindex.(result, 1), getindex.(result, 2));
+
+	for i in 2:n 
+		## select a random ellipse and copy it
+		j = rand(1:N);
+		j_ellipse = deepcopy(distribution[j]);
+		
+		## generate random angle thera
+		j_ellipse.angle = rand_von_Mises(1, j_ellipse.angle, 3)[1];
+		fix_A!(j_ellipse);
+
+		## because delta theta can get to 2*pi
+		function transform(x)
+			x > pi && (x -= 2*pi);
+			x < -pi && (x += 2*pi);
+			x
+		end
+		delta_theta = transform(distribution[j].angle - j_ellipse.angle);
+
+		## decide if you want to accept new step or not
+		new_E, new_Z = energy(j_ellipse, vicinities[j], grid);
+		delta_E = new_E - E[j];
+
+		## boltzmann probability distribution
+		u = rand();
+
+		if (delta_E<=0 && u<1) | (delta_E>0 && delta_E<=T*log(1/u))
+			## accept this step
+			distribution[j].angle = j_ellipse.angle;
+			fix_A!(distribution[j]);
+
+			## save parameters for later
+			## change energy
+			E[j] = new_E;
+			Z[j] = new_Z;
+
+			## change energy of all neighbors as well
+			for k in indices[j];
+				E[k], Z[k] = energy(distribution[k], vicinities[k], grid);
+			end
+
+			## delta theta
+			t += 1;
+			accepted_theta[t] = delta_theta;
+		else
+			## save parameters for later
+			rejected_theta[i-t] = delta_theta;
+			continue
+		end
+
+		## If energy reaches zero stop iterating
+
+		last_i = i
+		if sum(E) == 0
+			break
+		end
+	end
+
+	## calculate energy for all pairs after the final rotation
+	result .= [energy(distribution[i], vicinities[i], grid) for i in 1:N];
+	(E, Z) = (getindex.(result, 1), getindex.(result, 2))
+
+	for k in 1:size(distribution, 1)
+		distribution[k].energy = E[k];
+		distribution[k].coord = Z[k];
+	end
+
+	return E, Z, collect(skipmissing(accepted_theta)), collect(skipmissing(rejected_theta));
+	gc()
 end
