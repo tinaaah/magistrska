@@ -7,7 +7,7 @@ using Random
 include("main.jl")
 include("von_mises.jl")
 
-# Random.seed!(42)
+ Random.seed!(42)
 
 ## generate distribution
 grid = [100, 100];
@@ -27,9 +27,8 @@ samples = generate_samples(initial, grid, N);
     plotek = plot(x, y, seriestype = :scatter, title = "datapoints", legend=false)
     savefig("test.png")
 =#
-
 ## turn points into ellipses with random orientations
-a, e = 7., 5/2       ## big semi-axis and ratio
+a, e = 15., 5/2       ## big semi-axis and ratio
 b = a/e             ## small semi-axis
 
 distribution = [Ellipse(convert(Vector{Float64}, vector), a, b) for vector in eachcol(samples)]
@@ -64,7 +63,6 @@ results = [vicinity(i, in_proximity, distribution) for i in 1:N];
 
 #= 
 ## try to do the metropolis
-    (E, Z, accepted_theta, rejected_theta) = metropolis(distribution, in_proximity, 1000, 0);
 
     data = Dict("distribution" => distribution, "grid" => grid);
     JSON3.write("output.json", data)

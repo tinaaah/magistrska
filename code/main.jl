@@ -14,11 +14,15 @@ function Rotate(theta, matrix)
 end
 
 ## generate distribution
-function generate_samples(input_samples, grid, N)
+function generate_samples(input_samples, grid, N, k0=0)
     samples = input_samples;
 	
     while size(samples, 2) < N
-        k = div(size(samples, 2), 2) + 1;
+		if k0==0
+        	k = div(size(samples, 2), 2) + 1;
+		else
+			k = k0;
+		end;
  
 		## generate random k candidates
  		candidates = zeros(2, k);
@@ -233,13 +237,21 @@ function metropolis(distribution, in_proximity, grid, n=100, T=0)
 	return E, Z, collect(skipmissing(accepted_theta)), collect(skipmissing(rejected_theta));
 end
 
+## because delta theta can get to 2*pi
+function transform(x)
+	x > pi && (x -= 2*pi);
+	x < -pi && (x += 2*pi);
+	x
+end
+
 ## this algorithm returns only the last state
 function metropolis2(distribution, in_proximity, grid, n=100, T=0)
 	N = size(distribution, 1);
 	last_i = 0;
 
 	t=0;
-	accepted_theta, rejected_theta = Vector{Union{Float64,Missing}}(missing, n), Vector{Union{Float64,Missing}}(missing, n);
+	accepted, rejected = 0, 0;
+	# accepted_theta, rejected_theta = Vector{Union{Float64,Missing}}(missing, n), Vector{Union{Float64,Missing}}(missing, n);
 
 	## get vicinities of all ellipses
 	results = [vicinity(i, in_proximity, distribution) for i in 1:N];
@@ -258,12 +270,6 @@ function metropolis2(distribution, in_proximity, grid, n=100, T=0)
 		j_ellipse.angle = rand_von_Mises(1, j_ellipse.angle, 3)[1];
 		fix_A!(j_ellipse);
 
-		## because delta theta can get to 2*pi
-		function transform(x)
-			x > pi && (x -= 2*pi);
-			x < -pi && (x += 2*pi);
-			x
-		end
 		delta_theta = transform(distribution[j].angle - j_ellipse.angle);
 
 		## decide if you want to accept new step or not
@@ -290,15 +296,16 @@ function metropolis2(distribution, in_proximity, grid, n=100, T=0)
 
 			## delta theta
 			t += 1;
-			accepted_theta[t] = delta_theta;
+			accepted += 1
+			# accepted_theta[t] = delta_theta;
 		else
 			## save parameters for later
-			rejected_theta[i-t] = delta_theta;
+			# rejected_theta[i-t] = delta_theta;
+			rejected += 1
 			continue
 		end
 
 		## If energy reaches zero stop iterating
-
 		last_i = i
 		if sum(E) == 0
 			break
@@ -314,6 +321,6 @@ function metropolis2(distribution, in_proximity, grid, n=100, T=0)
 		distribution[k].coord = Z[k];
 	end
 
-	return E, Z, collect(skipmissing(accepted_theta)), collect(skipmissing(rejected_theta));
-	gc()
+	# return E, Z, collect(skipmissing(accepted_theta)), collect(skipmissing(rejected_theta));
+	return sum(E, dims=1)[1]*0.5, sum(Z, dims=1)[1]/N, accepted, rejected;
 end
