@@ -8,17 +8,17 @@ include("von_mises.jl")
 function parse_commandline()
 	s = ArgParseSettings()
 	@add_arg_table s begin
-		"--a_0"
-		help = "starting ellipse size"
+		"--n_0"
+		help = "starting packing ratio"
 		arg_type = Float64
 		required = true
 	
-		"--a_max"
-		help = "maximum size of ellipses"
+		"--n_max"
+		help = "maximum packing ratio"
 		arg_type = Float64
 		required = true
 	
-		"--d_a"
+		"--d_n"
 		help = "growth step"
 		arg_type = Float64
 		default = 0.1
@@ -61,8 +61,8 @@ function parse_commandline()
 	return parse_args(s)
 end
 
-function one_run(distribution, arange, e, grid, N, n_metropol)
-    n = size(arange, 1 )
+function one_run(distribution, nrange, e, grid, N, n_metropol)
+    n = size(nrange, 1 )
     # E, Z = zeros(n_runs, N, n), zeros(n_runs, N, n)
     # E, Z = zeros(N, n), zeros(N, n)
     accepted_theta, rejected_theta = zeros(n), zeros(n)
@@ -70,7 +70,7 @@ function one_run(distribution, arange, e, grid, N, n_metropol)
 
     for i in 1:n
         ## change size of distributon
-        a_i = arange[i];
+        a_i = sqrt(nrange[i]*grid[1]*grid[2]*e/pi/N)
         b_i = a_i/e;
 
         for i in 1:size(distribution,1)
@@ -96,16 +96,22 @@ function one_run(distribution, arange, e, grid, N, n_metropol)
     # return vec(sum(E, dims=1))*0.5, vec(sum(Z, dims=1))/N, accepted_theta, rejected_theta
 end
 
-function many_runs(a0, e, da, a_max, N, grid, n_runs, n_metropol, seed0)
+function many_runs(n0, e, dn, n_max, N, grid, n_runs, n_metropol, seed0)
     initial = hcat( [rand()*grid[1], rand()*grid[2]], [rand()*grid[1], rand()*grid[2]]);
     samples = generate_samples(initial, grid, N);
 
     ## change circles into ellipses
+    a0 = sqrt(n0*grid[1]*grid[2]*e/pi/N)
+    a_max = sqrt(n_max*grid[1]*grid[2]*e/pi/N)
 	b0 = a0/e;                          # small semi-axis
 
     ## set a_range for growing ellipses
-    a_range = [a0: da:a_max ...];
-    n_a = size(a_range, 1);
+    # a_range = [a0: da:a_max ...];
+    # n_a = size(a_range, 1);
+
+    ## set n_range for growing ellipses
+    n_range = [n0: dn:n_max ...];
+    n_a = size(n_range, 1);
 
     ## for multithreading
     EN = [zeros(n_a) for _ in 1:Threads.nthreads()];
@@ -134,7 +140,7 @@ function many_runs(a0, e, da, a_max, N, grid, n_runs, n_metropol, seed0)
         ## deterministic random so that it can be recreated
         Random.seed!(i);
 
-        timed = @elapsed (e_i, z_i, accept_i, reject_i) = one_run(distribution, a_range, e, grid, N, n_metropol);
+        timed = @elapsed (e_i, z_i, accept_i, reject_i) = one_run(distribution, n_range, e, grid, N, n_metropol);
 
         EN[Threads.threadid()] += e_i;
         EN_squared[Threads.threadid()] += e_i.^2;
@@ -184,7 +190,7 @@ function many_runs(a0, e, da, a_max, N, grid, n_runs, n_metropol, seed0)
 	out_file = "run_e_$eps.npz"
     
  	npzwrite(out_file, 
-    	Dict("a_range" => a_range, 
+    	Dict("n_range" => n_range, 
         "E" => E, "E2" => E2, "Z" => Z, "Z2" => Z2, "accept" => accept, "accept2" => accept2,
         "reject" => reject, "reject2" => reject2, "corr" => corr, "corr2" => corr2, 
         "times" => times, "times2" => times2,
@@ -192,21 +198,22 @@ function many_runs(a0, e, da, a_max, N, grid, n_runs, n_metropol, seed0)
     );
 end
 
-function create_gif(a0, amax, da, e, grid, N, n_metropol)
+function create_gif(n0, n_max, dn, e, grid, N, n_metropol)
 	initial = hcat( [rand()*grid[1], rand()*grid[2]], [rand()*grid[1], rand()*grid[2]]);
     samples = generate_samples(initial, grid, N);
 
     ## change circles into ellipses
-    b0 = a0/e;                  # small semi-axis
+    a0 = sqrt(n0*grid[1]*grid[2]*e/pi/N)
+    b0 = a0/e;                  
 
-    ## set a_range for growing ellipses
-    a_range = [a0: da:amax ...];
-    n_a = size(a_range, 1);
+    ## set n_range for growing ellipses
+    n_range = [n0: dn:n_max ...];
+    n_a = size(n_range, 1);
 	
 	data = Dict([]);
     Threads.@threads for i in 1:n_a
         ## change size of distributon
-        a_i = a_range[i];
+        a_i = sqrt(n_range[i]*grid[1]*grid[2]*e/pi/N);
         b_i = a_i/e;
 
         distribution = [Ellipse(convert(Vector{Float64}, vector), a_i, b_i) for vector in eachcol(samples)];
@@ -263,7 +270,8 @@ function generate_distribution(a0, b0, e, grid, N, k)
 end
 
 ## create only starting configurations to time it
-function test_k(a0, e, grid, N)
+function test_k(n0, e, grid, N)
+    a0 = sqrt(n0*grid[1]*grid[2]*e/pi/N)
     b0 = a0/e;
     ks = [0, 2, 5, 50, 500, 1000]
 
@@ -280,21 +288,22 @@ function test_k(a0, e, grid, N)
 	return data
 end
 
-function create_gif_k(a0, amax, da, e, grid, N, n_metropol, k0)
+function create_gif_k(n0, n_max, dn, e, grid, N, n_metropol, k0)
 	initial = hcat( [rand()*grid[1], rand()*grid[2]], [rand()*grid[1], rand()*grid[2]]);
     samples = generate_samples(initial, grid, N, k0);
 
     ## change circles into ellipses
-    b0 = a0/e;                  # small semi-axis
+    a0 = sqrt(n0*grid[1]*grid[2]*e/pi/N)
+    b0 = a0/e;                  
 
-    ## set a_range for growing ellipses
-    a_range = [a0: da:amax ...];
-    n_a = size(a_range, 1);
+    ## set n_range for growing ellipses
+    n_range = [n0: dn:n_max ...];
+    n_a = size(n_range, 1);
 	
 	data = Dict([]);
     Threads.@threads for i in 1:n_a
         ## change size of distributon
-        a_i = a_range[i];
+        a_i = sqrt(n_range[i]*grid[1]*grid[2]*e/pi/N)
         b_i = a_i/e;
 
         distribution = [Ellipse(convert(Vector{Float64}, vector), a_i, b_i) for vector in eachcol(samples)];
@@ -320,9 +329,7 @@ function create_gif_k(a0, amax, da, e, grid, N, n_metropol, k0)
         metropolis2(distribution, in_proximity, grid, n_metropol, 0);
 	
 		## display state every iteration
-        if isinteger(a_i)
-		    data["$i state"] = distribution;
-        end
+		data["$i state"] = distribution;
     end
 	out_file = "data/different_k/k_$k0.json"
 	data = sort(data, by = x -> parse(Int, (split(x, " ")[1])))
@@ -339,7 +346,7 @@ function main()
 	end
 	Random.seed!(pa["seed"]);
 	grid = [pa["x_size"], pa["y_size"]];
-	many_runs(pa["a_0"], pa["e"], pa["d_a"], pa["a_max"], pa["N"], grid, pa["n_runs"], pa["n_metropol"], pa["seed"]);
+	many_runs(pa["n_0"], pa["e"], pa["d_n"], pa["n_max"], pa["N"], grid, pa["n_runs"], pa["n_metropol"], pa["seed"]);
 end
 
 main()

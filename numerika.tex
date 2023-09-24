@@ -1,0 +1,38 @@
+\chapter{Numerika}
+\begin{figure}[!ht]
+    \centering
+    \resizebox{.6\textwidth}{!}{\input{./figures/barvni_prikaz.tex}}
+    \caption{Barva prekritih elips je odvisna od njihove energije.}
+    \label{fig:energija}
+\end{figure}
+\subsection{Različni koraki rasti}
+Pri isti začetni porazdelitvi točk, večkrat zgeneriramo porazdelitve elips z~različnimi
+začetnimi naključnimi orientacijami. Na sliki~\ref{fig:delta_a_01} je prikazan tak primer
+pri koraku rasti $\Delta a = 0,1$ pri začetni velikosti $a_0 = 5$ in končni $a = 8$. 
+Razmerje med polosmi je $a/b = 5/2$.
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.35\textwidth]{./figures/runs/delta_a_01/run01}
+    \caption{Končno zagozdenje sistema iz začetne porazdelitve $128$ elips in 
+    naključnih začetnih orientacijah. Velikost koraka je $\Delta a = 0,1$.}
+    \label{fig:delta_a_01}
+\end{figure}
+Spodaj so prikazani grafi energije, povprečnega števila kontaktov na elipso, orientacijske
+korelacijske funkcije in števila sprejetih in zavrnjenih rotacij med računanjem. 
+\emph{!popravi graf napake rotacij!}
+\begin{figure}
+    \centering
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_energy.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_stdenergy.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_coord.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_stdcoord.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_correlation.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_stdcorrelation.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_rotations.tex}}
+    \resizebox{.48\textwidth}{!}{\input{./gnuplot/a_01_N_128_e_52/growth_a_01_stdrotations.tex}}
+    \caption{Spreminjanje energije, povprečnega števila kontaktov s~sosednjimi elipsami,
+    korelacijske orientacijske funkcije in števila sprejetih ter zavrnjenih rotacij tekom
+    relaksacije sistema. Povprečeno po $100$ poskusih relaksacije in $10.000$ poskusih 
+    rotacije z metodo Monte Carlo.}
+    \label{fig:average_a_01}
+\end{figure}
