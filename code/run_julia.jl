@@ -141,25 +141,27 @@ function many_runs(n0, e, dn, n_max, N, grid, n_runs, n_metropol, seed0)
         Random.seed!(i);
 
         timed = @elapsed (e_i, z_i, accept_i, reject_i) = one_run(distribution, n_range, e, grid, N, n_metropol);
+		
+		t_id = Threads.threadid()
 
-        EN[Threads.threadid()] += e_i;
-        EN_squared[Threads.threadid()] += e_i.^2;
+        EN[t_id] += e_i;
+        EN_squared[t_id] += e_i.^2;
 
-        Coord[Threads.threadid()] += z_i;
-        Coord_squared[Threads.threadid()] += z_i.^2;
+        Coord[t_id] += z_i;
+        Coord_squared[t_id] += z_i.^2;
 
-        accepted_theta[Threads.threadid()] += accept_i;
-        accepted_squared[Threads.threadid()] += accept_i.^2;
+        accepted_theta[t_id] += accept_i;
+        accepted_squared[t_id] += accept_i.^2;
 
-        rejected_theta[Threads.threadid()] += reject_i;
-        rejected_squared[Threads.threadid()] += reject_i.^2;
+        rejected_theta[t_id] += reject_i;
+        rejected_squared[t_id] += reject_i.^2;
 
         corr = angle_correlation(distribution, 3*a_max, grid);
-        correlation[Threads.threadid()] += corr;
-        correlation_squared[Threads.threadid()] += corr.^2;
+        correlation[t_id] += corr;
+        correlation_squared[t_id] += corr.^2;
 
-        times[Threads.threadid()] += timed
-        times_squared[Threads.threadid()] += timed.^2
+        times[t_id] += timed
+        times_squared[t_id] += timed.^2
     end
 
     ## sum all threads

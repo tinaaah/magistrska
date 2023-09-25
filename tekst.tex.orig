@@ -48,8 +48,16 @@
 \usepackage{caption}
 
 \usepackage{standalone}                           %% needed for external tikz files
+<<<<<<< HEAD
 \usepackage{TikzPack}                             %% needed for external tikz files
 \usepackage{gnuplot-lua-tikz}
+||||||| 5bb792e
+\usepackage{figures/TikzPack}                     %% needed for external tikz files
+\usepackage{gnuplot-lua-tikz}
+=======
+\usepackage{TikzPack}                             %% needed for tikz gnuplot images
+\usepackage{gnuplot-lua-tikz}                     
+>>>>>>> origin/overleaf-2023-09-24-1217
 
 \def\epsfg#1#2{\epsfig{file=#1.eps,width=#2}}
 \def\legendamp#1#2{\vbox{\hsize=#1\caption{\small #2}}}

@@ -73,9 +73,9 @@ definitno kvadratično formo $\mathbf{A}$ kot množica točk, za katero velja
     E_A (\vec{r}-\vec{r}_A, \theta_A) = 
     (\vec{r} - \vec{r}_A)^{\top} \mathbf{A}^{-1} (\vec{r} - \vec{r}_A)
     \begin{cases}
-        \quad <1 & \text{znotraj A},\\
-        \quad =1 & \text{na površini A},\\
-        \quad >1 & \text{zunaj A}.
+        <1 & \text{znotraj A},\\
+        =1 & \text{na površini A},\\
+        >1 & \text{zunaj A}.
     \end{cases}
     \label{eq:elipsa}
 \end{equation}
@@ -154,9 +154,9 @@ f(\lambda)$ velja
 \begin{equation}
     \max_{0<\lambda<1} f(\lambda)
     \begin{cases}
-        <1 \quad\text{$A$ in $B$ se prekrivata,}\\
-        =1 \quad\text{$A$ in $B$ sta tangentni,}\\
-        >1 \quad\text{$A$ in $B$ se ne dotikata.}
+        <1 &\text{$A$ in $B$ se prekrivata,}\\
+        =1 &\text{$A$ in $B$ sta tangentni,}\\
+        >1 &\text{$A$ in $B$ se ne dotikata.}
     \end{cases}
     \label{eq:kriterij}
 \end{equation}
@@ -188,8 +188,26 @@ S~tem zmanjšamo število parov elips na katerih moramo računati kontaktno funk
 \end{figure}
 
 \section{Parametri sistema}
+Spremljamo energijo sistema, povprečno število sosedov, delež sprejetih oziroma 
+zavrnjenih rotacij ter orientacijsko korelacijsko funkcijo.
 \subsection{Energija}
-Sistemu definiramo prekrivalno enrgijo na sledeč način
+Energija celotnega sistema je vsota energij posameznih elips $E = \sum u_i$. Elipsi 
+pripišemo energijo, ki je je večja od nič, če se elipsi prekrivata in enaka nič, če se 
+elipsi ne prekrivata ali pa se le dotikata. To dosežemo na sledeči način
 \begin{equation}
-    u = \sum_{i \neq j} \log{\mu_{i,j}^2} 
+    E = \frac{1}{2} \sum\limits_{i} u_i = - \frac{1}{2} \sum\limits_{i,j} \log
+    \begin{cases}
+        \mu_{i,j}^2    &\mu_{ij} < 1,\\ 
+        1               &\mu_{ij} \geq 1.
+    \end{cases}
 \end{equation}
+
+\subsection{Orientacijska korelacijska funkcija}
+
+\begin{align}
+    g_2 (\vec{r}, t) &= < \psi_{i,2} \cdot \psi_{j,2}^* >, \\
+    \psi_{i,2} &= \frac{1}{Z_j} \sum\limits_{k=1}^{Z_j} \mathrm{e}^{\mathrm{i}\, 2 
+                    \vartheta_{jk}},
+\end{align}
+kjer je $Z_j$ število sosedov elipse, $\vartheta_{jk}$ pa kot med glavnima polosema elips
+$j$ in $k$.
